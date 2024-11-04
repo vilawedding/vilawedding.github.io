@@ -27,36 +27,47 @@
     <iframe id="dynamicIframe" class="h-screen border-0 w-full" src=""></iframe>
 </div>
 <script>
-    // Sample JSON object for demonstration
-    const jsonData = {
-        'em_duc': "em-duc-rkbcm7",
-        // Other data can go here
-    };
-
-    // Default URL to use if no attSlug is found
-    const defaultUrl = "https://api.vesey.click/api/cards/vila/live-html";
-
     // Function to get the query parameter value from the URL
     function getQueryParameter(param) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(param);
     }
 
-    // Get the attSlug from the URL
-    const attSlug = getQueryParameter('attSlug');
+    // Function to load JSON data and update iframe URL
+    async function loadAndSetIframeSrc() {
+        try {
+            const response = await fetch('data.json'); // Load the JSON file
+            const data = await response.json();
 
-    // Build the new URL for the iframe based on attSlug or default
-    let iframeUrl;
-    if (attSlug && jsonData[attSlug]) {
-        // If attSlug is found, use its corresponding value
-        iframeUrl = `https://api.vesey.click/api/cards/vila/live-html?attSlug=${jsonData[attSlug]}`;
-    } else {
-        // Otherwise, use the default URL
-        iframeUrl = defaultUrl;
+            // Get the attSlug and la parameters from the URL
+            const attSlug = getQueryParameter('attSlug');
+            const la = getQueryParameter('la');
+
+            // Set the base URL depending on the 'la' parameter
+            const defaultUrl = la === '1'
+                ? "https://api.vesey.click/api/cards/lavi/live-html"
+                : "https://api.vesey.click/api/cards/vila/live-html";
+
+            // Determine the appropriate data section ('vila' or 'lavi')
+            const dataSection = la === '1' ? data.lavi : data.vila;
+
+            // Initialize iframeUrl to defaultUrl
+            let iframeUrl = defaultUrl;
+
+            // If attSlug exists in the selected data section, append it to iframeUrl
+            if (attSlug && dataSection[attSlug]) {
+                iframeUrl = `${defaultUrl}?attSlug=${dataSection[attSlug]}`;
+            }
+
+            // Update the iframe src
+            document.getElementById('dynamicIframe').src = iframeUrl;
+        } catch (error) {
+            console.error("Error loading data.json:", error);
+        }
     }
 
-    // Update the iframe src
-    document.getElementById('dynamicIframe').src = iframeUrl;
+    // Load data and set iframe on page load
+    loadAndSetIframeSrc();
 </script>
 </body>
 </html>
